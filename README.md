@@ -22,6 +22,40 @@ Or build from source.
 1. `npm install`
 1. `npm run build`
 
+### Development / Running from Source
+
+For development or running the latest version with model transformations:
+
+```bash
+# Install dependencies
+npm install
+
+# Build and run (recommended)
+NODE_OPTIONS="--openssl-legacy-provider" npm run build
+node dist/index.js -m SM-S906B -r EUX
+
+# Or use the provided script
+./run.sh -m SM-S906B -r EUX
+
+# Or for development with auto-reload
+npm start -- -m SM-S906B -r EUX
+```
+
+### Model Transformation Feature
+
+This version includes deep recoding functionality that automatically transforms certain Samsung model identifiers:
+
+- `s906b` → `s916b`
+- `S906B` → `S916B` 
+- `SM-S906B` → `SM-S916B`
+- `sm-s906b` → `sm-s916b`
+
+When transformation occurs, you'll see:
+```
+🔄 Model transformation applied: SM-S906B → SM-S916B
+Model: SM-S906B (processing as SM-S916B)
+```
+
 ## Example
 
 ```
