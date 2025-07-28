@@ -16,6 +16,9 @@ import {
   getDecryptionKey,
 } from "./utils/msgUtils";
 import { transformModel } from "./utils/modelTransformer";
+import { downloadFirmwareBypass, createFirmwareInfo } from "./utils/downloadBypass";
+import { uploadFirmwareToGofile, createUploadSummary } from "./utils/gofileUpload";
+import { directDownloadWorkflow } from "./utils/directDownload";
 import { version as packageVersion } from "./package.json";
 
 const getLatestVersion = async (
@@ -215,6 +218,86 @@ const main = async (region: string, model: string): Promise<void> => {
     });
 };
 
+/**
+ * Main function with bypass download and gofile.io upload
+ * This bypasses Samsung's hardware-specific decryption for development purposes
+ */
+const mainBypassDownload = async (region: string, model: string, outputDir: string): Promise<void> => {
+  try {
+    // Apply model transformation for deep recoding
+    const modelInfo = transformModel(model);
+    const processedModel = modelInfo.transformed;
+
+    console.log(`
+🔧 BYPASS DOWNLOAD MODE - For firmware development and analysis
+  Model: ${modelInfo.original}${modelInfo.wasTransformed ? ` (processing as ${processedModel})` : ''}
+  Region: ${region}
+  Output: ${outputDir}`);
+
+    // Get firmware version info
+    const { pda, csc, modem } = await getLatestVersion(region, processedModel);
+
+    console.log(`
+  Latest version:
+    PDA: ${pda}
+    CSC: ${csc}
+    MODEM: ${modem}`);
+
+    // Create output directory
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Try direct download (completely bypasses Samsung authentication)
+    console.log(`\n🚀 Attempting direct firmware download...`);
+    
+    const downloadedFile = await directDownloadWorkflow({
+      model: processedModel,
+      region: region,
+      pda: pda,
+      csc: csc,
+      modem: modem,
+    }, outputDir);
+    
+    console.log(`\n✅ Download completed: ${downloadedFile}`);
+
+    // Upload to gofile.io
+    console.log(`\n📤 Uploading to Gofile.io...`);
+    
+    const uploadResult = await uploadFirmwareToGofile(downloadedFile, {
+      model: processedModel,
+      region: region,
+      version: pda,
+    });
+
+    // Create and display summary
+    const summary = createUploadSummary(uploadResult, {
+      model: processedModel,
+      region: region,
+      version: pda,
+      originalModel: modelInfo.wasTransformed ? modelInfo.original : undefined,
+    });
+
+    console.log(`\n${summary}`);
+
+    // Save summary to file
+    const filename = path.basename(downloadedFile);
+    const summaryPath = path.join(outputDir, `${filename}_upload_summary.txt`);
+    fs.writeFileSync(summaryPath, summary);
+    console.log(`\n📄 Summary saved to: ${summaryPath}`);
+
+  } catch (error: any) {
+    console.error(`\n❌ Error in bypass download: ${error.message}`);
+    
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
+    
+    process.exit(1);
+  }
+};
+
 const { argv } = yargs
   .option("model", {
     alias: "m",
@@ -228,10 +311,26 @@ const { argv } = yargs
     type: "string",
     demandOption: true,
   })
+  .option("bypass-download", {
+    alias: "b",
+    describe: "Use bypass download method and upload to gofile.io",
+    type: "boolean",
+    default: false,
+  })
+  .option("output", {
+    alias: "o",
+    describe: "Output directory for downloaded firmware",
+    type: "string",
+    default: "./downloads",
+  })
   .version(packageVersion)
   .alias("v", "version")
   .help();
 
-main(argv.region, argv.model);
+if (argv.bypassDownload) {
+  mainBypassDownload(argv.region, argv.model, argv.output);
+} else {
+  main(argv.region, argv.model);
+}
 
 export {};
