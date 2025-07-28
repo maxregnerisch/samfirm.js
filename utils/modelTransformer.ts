@@ -6,7 +6,9 @@
 // Model transformation mapping
 const MODEL_TRANSFORMATIONS: Record<string, string> = {
   's906b': 's916b',
-  'S906B': 'S916B', // Handle uppercase variants
+  'S906B': 'S916B',
+  'SM-S906B': 'SM-S916B', // Handle full Samsung model format
+  'sm-s906b': 'sm-s916b', // Handle lowercase full format
 };
 
 /**
