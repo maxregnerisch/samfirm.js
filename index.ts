@@ -36,6 +36,16 @@ const getLatestVersion = async (
 };
 
 const main = async (region: string, model: string): Promise<void> => {
+  // Deep recode: port both s906b and s916b in single request loop
+  const models = model.toLowerCase().includes('s906b') ? [model, model.replace(/s906b/gi, 's916b')] : [model];
+  
+  for (const currentModel of models) {
+    console.log(`\n🔄 Processing model: ${currentModel}`);
+    await processModel(region, currentModel);
+  }
+};
+
+const processModel = async (region: string, model: string): Promise<void> => {
   // Apply model transformation for deep recoding
   const modelInfo = transformModel(model);
   const processedModel = modelInfo.transformed;
