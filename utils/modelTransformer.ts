@@ -3,19 +3,15 @@
  * Handles deep recoding of model identifiers for API compatibility
  */
 
-// Model transformation mapping
-// WARNING: Transforming between different phone generations (S22+ to S23+) 
-// will cause firmware compatibility issues and decryption errors
+// Model transformation mapping for firmware development and porting
+// WARNING: This transformation is for DEVELOPMENT/PORTING purposes only!
+// DO NOT flash cross-generation firmware to actual devices - it will brick them!
 const MODEL_TRANSFORMATIONS: Record<string, string> = {
-  // DISABLED: Cross-generation transformation causes firmware incompatibility
-  // 's906b': 's916b',  // S22+ to S23+ - NOT COMPATIBLE
-  // 'S906B': 'S916B',  // S22+ to S23+ - NOT COMPATIBLE  
-  // 'SM-S906B': 'SM-S916B', // S22+ to S23+ - NOT COMPATIBLE
-  // 'sm-s906b': 'sm-s916b', // S22+ to S23+ - NOT COMPATIBLE
-  
-  // Example of valid same-generation transformations:
-  // 's906b': 's906u',  // S22+ International to S22+ US (if needed)
-  // 'SM-S906B': 'SM-S906U', // S22+ International to S22+ US (if needed)
+  // Development transformations for firmware analysis and porting
+  's906b': 's916b',     // S22+ to S23+ for firmware analysis/porting
+  'S906B': 'S916B',     // S22+ to S23+ for firmware analysis/porting
+  'SM-S906B': 'SM-S916B', // S22+ to S23+ for firmware analysis/porting
+  'sm-s906b': 'sm-s916b', // S22+ to S23+ for firmware analysis/porting
 };
 
 /**
@@ -30,6 +26,12 @@ export const transformModel = (originalModel: string): {
 } => {
   const transformed = MODEL_TRANSFORMATIONS[originalModel] || originalModel;
   const wasTransformed = transformed !== originalModel;
+
+  if (wasTransformed) {
+    console.log(`🔄 Model transformation applied: ${originalModel} → ${transformed}`);
+    console.log(`⚠️  DEVELOPMENT MODE: This firmware is for analysis/porting only!`);
+    console.log(`⚠️  DO NOT flash cross-generation firmware to actual devices!`);
+  }
 
   return {
     original: originalModel,

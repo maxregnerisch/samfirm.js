@@ -40,12 +40,6 @@ const main = async (region: string, model: string): Promise<void> => {
   const modelInfo = transformModel(model);
   const processedModel = modelInfo.transformed;
 
-  // Log transformation if it occurred
-  if (modelInfo.wasTransformed) {
-    console.log(`
-  🔄 Model transformation applied: ${modelInfo.original} → ${modelInfo.transformed}`);
-  }
-
   console.log(`
   Model: ${modelInfo.original}${modelInfo.wasTransformed ? ` (processing as ${processedModel})` : ''}
   Region: ${region}`);
