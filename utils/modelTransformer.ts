@@ -4,11 +4,18 @@
  */
 
 // Model transformation mapping
+// WARNING: Transforming between different phone generations (S22+ to S23+) 
+// will cause firmware compatibility issues and decryption errors
 const MODEL_TRANSFORMATIONS: Record<string, string> = {
-  's906b': 's916b',
-  'S906B': 'S916B',
-  'SM-S906B': 'SM-S916B', // Handle full Samsung model format
-  'sm-s906b': 'sm-s916b', // Handle lowercase full format
+  // DISABLED: Cross-generation transformation causes firmware incompatibility
+  // 's906b': 's916b',  // S22+ to S23+ - NOT COMPATIBLE
+  // 'S906B': 'S916B',  // S22+ to S23+ - NOT COMPATIBLE  
+  // 'SM-S906B': 'SM-S916B', // S22+ to S23+ - NOT COMPATIBLE
+  // 'sm-s906b': 'sm-s916b', // S22+ to S23+ - NOT COMPATIBLE
+  
+  // Example of valid same-generation transformations:
+  // 's906b': 's906u',  // S22+ International to S22+ US (if needed)
+  // 'SM-S906B': 'SM-S906U', // S22+ International to S22+ US (if needed)
 };
 
 /**
