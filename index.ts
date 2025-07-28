@@ -15,6 +15,7 @@ import {
   getBinaryInitMsg,
   getDecryptionKey,
 } from "./utils/msgUtils";
+import { transformModel } from "./utils/modelTransformer";
 import { version as packageVersion } from "./package.json";
 
 const getLatestVersion = async (
@@ -35,11 +36,21 @@ const getLatestVersion = async (
 };
 
 const main = async (region: string, model: string): Promise<void> => {
+  // Apply model transformation for deep recoding
+  const modelInfo = transformModel(model);
+  const processedModel = modelInfo.transformed;
+
+  // Log transformation if it occurred
+  if (modelInfo.wasTransformed) {
+    console.log(`
+  🔄 Model transformation applied: ${modelInfo.original} → ${modelInfo.transformed}`);
+  }
+
   console.log(`
-  Model: ${model}
+  Model: ${modelInfo.original}${modelInfo.wasTransformed ? ` (processing as ${processedModel})` : ''}
   Region: ${region}`);
 
-  const { pda, csc, modem } = await getLatestVersion(region, model);
+  const { pda, csc, modem } = await getLatestVersion(region, processedModel);
 
   console.log(`
   Latest version:
@@ -103,7 +114,7 @@ const main = async (region: string, model: string): Promise<void> => {
       getBinaryInformMsg(
         `${pda}/${csc}/${modem !== "" ? modem : pda}/${pda}`,
         region,
-        model,
+        processedModel,
         nonce.decrypted
       ),
       {
@@ -175,7 +186,7 @@ const main = async (region: string, model: string): Promise<void> => {
       }
     )
     .then((res: AxiosResponse) => {
-      const outputFolder = `${process.cwd()}/${model}_${region}/`;
+      const outputFolder = `${process.cwd()}/${modelInfo.original}_${region}/`;
       console.log();
       console.log(outputFolder);
       fs.mkdirSync(outputFolder, { recursive: true });
